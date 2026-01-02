@@ -16,8 +16,15 @@ COPY . .
 # that need the numpy C headers (helps avoid Cython/compile failures).
 RUN pip install --no-cache-dir "numpy==1.26.4" "Cython==0.29.36"
 
-# Install requirements from backend directory
-RUN pip install --no-cache-dir -r backend/requirements.txt
+# Install requirements from backend directory if present, otherwise try repo root
+RUN if [ -f ./backend/requirements.txt ]; then \
+			pip install --no-cache-dir -r ./backend/requirements.txt; \
+		elif [ -f ./requirements.txt ]; then \
+			pip install --no-cache-dir -r ./requirements.txt; \
+		else \
+			echo "ERROR: requirements file not found at ./backend/requirements.txt or ./requirements.txt" >&2; \
+			exit 1; \
+		fi
 
 # Ensure start script is executable if present
 RUN if [ -f ./backend/start.sh ]; then chmod +x ./backend/start.sh; fi
