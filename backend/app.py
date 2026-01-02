@@ -9,6 +9,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import sys
+# Ensure repo root is on sys.path so custom `src` package is importable
+# This allows joblib/pickle to find classes defined under `src.*` when loading models
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
 logger = logging.getLogger("spam_classifier")
 logging.basicConfig(level=logging.INFO)
 
