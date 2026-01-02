@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt ./requirements.txt
+# Install numpy and cython first to satisfy build-time dependencies for packages
+# that need the numpy C headers (helps avoid Cython/compile failures).
+RUN pip install --no-cache-dir "numpy==1.26.4" "Cython==0.29.36"
 RUN pip install --no-cache-dir -r requirements.txt
 
 # copy model and app
