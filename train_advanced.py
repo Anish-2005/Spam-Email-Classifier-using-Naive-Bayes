@@ -68,6 +68,22 @@ def load_and_combine(paths):
             raise ValueError(f"{p} must contain 'text' and 'label' columns")
         dfs.append(df[["text", "label"]])
     combined = pd.concat(dfs, ignore_index=True)
+    # Normalize labels across datasets: handle numeric 0/1 and common string variants
+    def _normalize_label(v):
+        if pd.isna(v):
+            return "ham"
+        # numeric labels like 0/1
+        try:
+            if isinstance(v, (int, float)) and not isinstance(v, bool):
+                return "spam" if int(v) == 1 else "ham"
+            s = str(v).strip().lower()
+        except Exception:
+            s = str(v).strip().lower()
+        if s in ("1", "spam", "s", "true", "t", "yes", "y"):
+            return "spam"
+        return "ham"
+
+    combined["label"] = combined["label"].apply(_normalize_label)
     return combined["text"].astype(str).tolist(), combined["label"].astype(str).tolist()
 
 
