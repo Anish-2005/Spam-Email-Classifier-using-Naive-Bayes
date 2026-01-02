@@ -49,8 +49,11 @@ logs/
 outputs/
 
 # Trained models and large artifacts
+# Ignore generic `models/` folders but allow the backend models folder (used for deployment)
 models/
 models/*.joblib
+!/backend/models/
+!/backend/models/*.joblib
 
 # Data: ignore raw/large data, keep small sample data committed
 data/raw/
