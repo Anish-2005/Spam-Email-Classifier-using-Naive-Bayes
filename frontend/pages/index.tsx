@@ -16,8 +16,8 @@ export default function Home() {
     setLoading(true)
     setResult(null)
     try {
-      const apiBase = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '')
-      const endpoint = apiBase ? `${apiBase}/predict` : '/predict'
+      // Use same-origin Next.js API route so the app can run without a Python backend
+      const endpoint = '/api/predict'
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
