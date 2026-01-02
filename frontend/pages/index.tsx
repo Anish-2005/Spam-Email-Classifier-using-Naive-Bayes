@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import React,{ useState, useRef, useEffect } from 'react'
 import Header from '../components/Header'
 import { ResultCard } from '../components/ResultCard'
-import { Sparkles, Zap, RefreshCcw, BookOpen, BarChart3, Shield, AlertTriangle, CheckCircle, Clock, Upload, Download, Filter, HelpCircle } from 'lucide-react'
+import { Sparkles, Zap, RefreshCcw, Shield,  CheckCircle, Clock, Upload, Download,  } from 'lucide-react'
 
 type PredictResult =
   | { label: string; probability: number }
@@ -115,7 +115,7 @@ export default function Home() {
                 Spam Detection System
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Advanced AI-powered classification for emails and SMS messages
+                Advanced classification for emails and SMS messages
               </p>
             </div>
           </div>

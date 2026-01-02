@@ -18,8 +18,8 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
         <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-        <title>Spam Detection System - AI-Powered Classification</title>
-        <meta name="description" content="Advanced AI-powered spam detection for emails and SMS messages with real-time analysis and batch processing." />
+        <title>Spam Detection System - Advanced Classification</title>
+        <meta name="description" content="Advanced spam detection for emails and SMS messages with real-time analysis and batch processing." />
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </Head>

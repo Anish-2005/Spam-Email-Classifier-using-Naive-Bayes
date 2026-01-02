@@ -1,6 +1,6 @@
 import React from 'react'
 import { useTheme } from '../context/ThemeContext'
-import { Moon, Sun, Sparkles, Menu, X } from 'lucide-react'
+import { Moon, Sun, Sparkles, Menu, X, Link } from 'lucide-react'
 import { useState } from 'react'
 
 export default function Header() {
@@ -13,7 +13,7 @@ export default function Header() {
         <div className="flex items-center justify-between gap-3">
           {/* Brand */}
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl ai-gradient flex items-center justify-center text-white shadow-md flex-shrink-0">
+            <div className="h-10 w-10 rounded-xl primary-gradient flex items-center justify-center text-white shadow-md flex-shrink-0">
               <Sparkles size={18} />
             </div>
 
@@ -31,8 +31,8 @@ export default function Header() {
           <div className="hidden sm:flex items-center gap-3">
             <nav aria-label="Main navigation">
               <ul className="flex items-center gap-4 text-sm">
-                <li><a className="text-slate-700 hover:text-sky-600" href="/">Home</a></li>
-                <li><a className="text-slate-700 hover:text-sky-600" href="/docs">API Docs</a></li>
+                <Link className="text-slate-700 hover:text-sky-600" href="/">Home</Link>
+                <Link className="text-slate-700 hover:text-sky-600" href="/docs">API Docs</Link>
               </ul>
             </nav>
 
@@ -77,8 +77,8 @@ export default function Header() {
         {/* Mobile menu */}
         <div id="mobile-menu" className={`sm:hidden mt-3 ${open ? 'block' : 'hidden'}`}>
           <nav aria-label="Mobile navigation" className="flex flex-col gap-2">
-            <a href="/" className="block px-3 py-2 rounded-md text-base font-medium text-slate-800 hover:bg-slate-100">Home</a>
-            <a href="/docs" className="block px-3 py-2 rounded-md text-base font-medium text-slate-800 hover:bg-slate-100">API Docs</a>
+            <Link href="/" className="block px-3 py-2 rounded-md text-base font-medium text-slate-800 hover:bg-slate-100">Home</Link>
+            <Link href="/docs" className="block px-3 py-2 rounded-md text-base font-medium text-slate-800 hover:bg-slate-100">API Docs</Link>
           </nav>
         </div>
       </div>
