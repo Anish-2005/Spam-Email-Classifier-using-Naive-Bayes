@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from joblib import load
 from typing import List
@@ -46,6 +48,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static frontend export if present in backend/static
+# Mount under /static so FastAPI docs (/docs) remain available.
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    logger.info(f"Serving frontend static files from: {STATIC_DIR} at /static")
+
+
+@app.get("/")
+def serve_frontend_index():
+    """Serve frontend index.html from backend/static if present, otherwise return a tiny message."""
+    index_path = os.path.join(STATIC_DIR, "index.html")
+    if os.path.isfile(index_path):
+        return FileResponse(index_path, media_type='text/html')
+    return {"status": "spam classifier API", "docs": "/docs", "openapi": "/openapi.json"}
 
 
 class TextIn(BaseModel):

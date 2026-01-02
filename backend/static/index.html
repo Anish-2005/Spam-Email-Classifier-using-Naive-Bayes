@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spam Classifier — Demo</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;max-width:800px;margin:3rem auto;padding:0 1rem;color:#0f172a}
+    h1{font-size:1.6rem;margin-bottom:.25rem}
+    textarea{width:100%;min-height:120px;padding:.5rem;font-size:1rem}
+    button{padding:.6rem 1rem;margin-top:.5rem}
+    .result{margin-top:1rem;padding:1rem;border-radius:6px;background:#f1f5f9}
+    .label-spam{color:#b91c1c;font-weight:700}
+    .label-ham{color:#065f46;font-weight:700}
+    .small{font-size:.9rem;color:#475569}
+  </style>
+</head>
+<body>
+  <h1>Spam Classifier — Demo</h1>
+  <p class="small">Enter text below and click <strong>Classify</strong>. This page calls the backend <code>/predict</code> endpoint.</p>
+  <textarea id="text" placeholder="Type a message to classify..."></textarea>
+  <div>
+    <button id="btn">Classify</button>
+    <button id="clear">Clear</button>
+  </div>
+  <div id="out" class="result" style="display:none"></div>
+
+  <script>
+    const btn = document.getElementById('btn');
+    const clr = document.getElementById('clear');
+    const out = document.getElementById('out');
+    const txt = document.getElementById('text');
+
+    function show(msg, html=false){
+      out.style.display = 'block';
+      out.innerHTML = html? msg : (msg===null? '' : '<pre style="white-space:pre-wrap">'+msg+'</pre>');
+    }
+
+    btn.addEventListener('click', async ()=>{
+      const text = txt.value.trim();
+      if(!text){ show('Please enter some text.'); return }
+      show('Classifying...');
+      try{
+        const res = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+        if(!res.ok){
+          show('Error: '+ (data.detail || JSON.stringify(data)));
+          return;
+        }
+        const label = data.label || 'unknown';
+        const prob = (typeof data.probability === 'number')? data.probability : data.prob || 0;
+        const cls = label === 'spam' ? 'label-spam' : 'label-ham';
+        show(`<div><span class="${cls}">${label.toUpperCase()}</span> — probability: <strong>${(prob*100).toFixed(1)}%</strong></div>\n<div class=\"small\">Raw response: ${JSON.stringify(data)}</div>`, true);
+      }catch(err){
+        show('Request failed: '+err);
+      }
+    });
+
+    clr.addEventListener('click', ()=>{ txt.value=''; out.style.display='none'; });
+  </script>
+</body>
+</html>
