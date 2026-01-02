@@ -21,6 +21,10 @@ def ensure_nltk():
         nltk.data.find("corpora/omw-1.4")
     except Exception:
         nltk.download("omw-1.4")
+    try:
+        nltk.data.find("corpora/stopwords")
+    except Exception:
+        nltk.download("stopwords")
     _nltk_ready = True
 
 

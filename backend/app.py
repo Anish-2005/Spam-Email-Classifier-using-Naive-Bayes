@@ -70,6 +70,16 @@ def load_model(path: str):
 def startup_event():
     global model, model_loaded
     try:
+        # Ensure NLTK corpora are present before loading models that may call them
+        try:
+            from src import preprocess as _pre
+            try:
+                _pre.ensure_nltk()
+            except Exception:
+                logger.warning("Failed to ensure NLTK corpora; continuing and hoping model doesn't require them at load time.")
+        except Exception:
+            # src.preprocess may not be importable in some environments; proceed to load model and surface errors
+            logger.debug("Could not import src.preprocess to prefetch NLTK data")
         if os.path.exists(MODEL_PATH):
             model = load_model(MODEL_PATH)
             model_loaded = True
