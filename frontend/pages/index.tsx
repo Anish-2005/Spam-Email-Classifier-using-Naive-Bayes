@@ -1,27 +1,29 @@
 import { useState } from 'react'
+import Header from '../components/Header'
+import { ResultCard } from '../components/ResultCard'
+import { Sparkles, Zap, RefreshCcw, BookOpen } from 'lucide-react'
 
-type PredictResult = { label: string; probability: number } | { predictions: Array<{ text: string; label: string; probability: number }> }
-
-const DEFAULT_API = 'https://spam-email-classifier-using-naive-bayes-1.onrender.com'
+type PredictResult =
+  | { label: string; probability: number }
+  | { predictions: Array<{ text: string; label: string; probability: number }> }
 
 export default function Home() {
   const [text, setText] = useState('')
   const [result, setResult] = useState<PredictResult | null>(null)
   const [loading, setLoading] = useState(false)
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API
 
   async function predict() {
     setLoading(true)
     setResult(null)
     try {
-      const res = await fetch(`${apiUrl}/predict`, {
+      const res = await fetch(`https://spam-email-classifier-using-naive-bayes-1.onrender.com/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       })
       const j = await res.json()
       setResult(j)
-    } catch (e) {
+    } catch {
       setResult({ predictions: [{ text, label: 'error', probability: 0 }] } as any)
     } finally {
       setLoading(false)
@@ -29,66 +31,122 @@ export default function Home() {
   }
 
   return (
-    <main className="container">
-      <header className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Spam Classifier</h1>
-        <a href="/docs" className="text-sm text-sky-600">API Docs</a>
-      </header>
+    <main className="relative min-h-screen">
+      {/* Background Glow */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 h-[300px] w-[600px] rounded-full bg-sky-500/20 blur-[120px]" />
+      </div>
 
-      <section className="bg-white rounded-lg shadow p-6">
-        <label className="block text-sm font-medium text-slate-700 mb-2">Message</label>
-        <textarea
-          rows={8}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          className="w-full rounded-md border-slate-200 shadow-sm focus:ring-sky-500 focus:border-sky-500"
-        />
+      <Header />
 
-        <div className="flex items-center gap-3 mt-4">
-          <button
-            onClick={predict}
-            disabled={loading || text.trim() === ''}
-            className="inline-flex items-center px-4 py-2 bg-sky-600 text-white rounded-md hover:bg-sky-700 disabled:opacity-60"
-          >
-            {loading ? 'Predicting…' : 'Predict'}
-          </button>
-          <button
-            onClick={() => { setText(''); setResult(null) }}
-            className="px-3 py-2 border rounded text-sm"
-          >
-            Clear
-          </button>
-        </div>
+      <section className="container mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Panel */}
+          <section className="lg:col-span-2 glass rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="text-sky-500" size={20} />
+              <h1 className="text-xl font-semibold">
+                AI Message Classification
+              </h1>
+            </div>
 
-        {result && (
-          <div className="mt-6">
-            <h3 className="text-lg font-medium">Result</h3>
-            {'label' in result ? (
-              <div className="mt-2">
-                <div><span className="font-semibold">Label:</span> {result.label}</div>
-                <div><span className="font-semibold">Probability:</span> {result.probability.toFixed(4)}</div>
-              </div>
-            ) : (
-              <div className="mt-2 space-y-2">
-                {Array.isArray((result as any).predictions) && (result as any).predictions.length > 0 ? (
-                  (result as any).predictions.map((p: any, i: number) => (
-                    <div key={i} className="p-3 border rounded bg-slate-50">
-                      <div className="text-sm text-slate-700">{p.text}</div>
-                      <div className="text-sm"><strong>{p.label}</strong> — {Number(p.probability).toFixed(4)}</div>
-                    </div>
-                  ))
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+              Paste an email or SMS to instantly detect spam or malicious intent using a trained ML model.
+            </p>
+
+            <label className="text-sm font-medium mb-2 block">
+              Message Content
+            </label>
+
+            <textarea
+              rows={10}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Paste your email or SMS here…"
+              className="w-full rounded-xl glass p-4 focus:outline-none focus:ring-2 focus:ring-sky-500 min-h-[180px]"
+            />
+
+            <div className="flex flex-col sm:flex-row gap-3 mt-5">
+              <button
+                onClick={predict}
+                disabled={loading || text.trim() === ''}
+                className="ai-gradient text-white rounded-xl px-5 py-2.5 font-medium flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-50"
+              >
+                <Zap size={16} />
+                {loading ? 'Analyzing…' : 'Run Prediction'}
+              </button>
+
+              <button
+                onClick={() => {
+                  setText('')
+                  setResult(null)
+                }}
+                className="rounded-xl px-4 py-2 border dark:border-white/10 flex items-center gap-2"
+              >
+                <RefreshCcw size={16} />
+                Reset
+              </button>
+
+              <a
+                href="/docs"
+                className="sm:ml-auto flex items-center gap-1 text-sm text-sky-600 hover:underline"
+              >
+                <BookOpen size={14} /> API Docs
+              </a>
+            </div>
+
+            {/* Result */}
+            {result && (
+              <div className="mt-8">
+                <h3 className="font-semibold text-lg mb-3">Prediction Result</h3>
+
+                {'label' in result ? (
+                  <ResultCard
+                    label={result.label}
+                    probability={result.probability}
+                    text={text}
+                  />
                 ) : (
-                  <div className="text-sm text-slate-500">No predictions available.</div>
+                  <div className="space-y-3">
+                    {Array.isArray((result as any).predictions) && (result as any).predictions.length > 0 ? (
+                      (result as any).predictions.map((p: any, i: number) => (
+                        <ResultCard
+                          key={i}
+                          label={p.label}
+                          probability={Number(p.probability)}
+                          text={p.text}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-sm text-slate-500">No predictions available.</div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
-          </div>
-        )}
-      </section>
+          </section>
 
-      <footer className="mt-8 text-xs text-slate-500">
-        <div>Backend: <span className="font-mono">{apiUrl}</span></div>
-      </footer>
+          {/* Side Insights */}
+          <aside className="space-y-6">
+            <div className="glass rounded-2xl p-5">
+              <h4 className="font-semibold mb-2">Model Overview</h4>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Naive Bayes classifier using TF-IDF vectorization trained on
+                curated email and SMS datasets.
+              </p>
+            </div>
+
+            <div className="glass rounded-2xl p-5">
+              <h4 className="font-semibold mb-2">Best Practices</h4>
+              <ul className="text-sm list-disc list-inside text-slate-600 dark:text-slate-400 space-y-1">
+                <li>Avoid signatures & footers</li>
+                <li>Use original content</li>
+                <li>Batch predict for datasets</li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </section>
     </main>
   )
 }

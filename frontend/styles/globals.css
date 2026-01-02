@@ -14,3 +14,22 @@ body {
 .container {
   @apply max-w-3xl mx-auto px-4 py-8;
 }
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 dark:bg-[#0b0f19] dark:text-slate-100;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/80 dark:bg-white/5 backdrop-blur-md border border-slate-200/60 dark:border-white/10;
+  }
+
+  .ai-gradient {
+    @apply bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500;
+  }
+}
