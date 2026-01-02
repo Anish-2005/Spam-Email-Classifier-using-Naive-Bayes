@@ -13,10 +13,6 @@ def ensure_nltk():
     if _nltk_ready:
         return
     try:
-        nltk.data.find("tokenizers/punkt")
-    except Exception:
-        nltk.download("punkt")
-    try:
         nltk.data.find("corpora/wordnet")
     except Exception:
         nltk.download("wordnet")
@@ -28,11 +24,8 @@ def ensure_nltk():
 
 
 def simple_tokenize(text: str) -> List[str]:
-    ensure_nltk()
-    from nltk.tokenize import word_tokenize
-
-    tokens = word_tokenize(text)
-    return tokens
+    # lightweight tokenizer: split on word boundaries to avoid heavy NLTK tokenizers
+    return re.findall(r"\b[a-z0-9]+\b", text.lower())
 
 
 def simple_clean(text: str) -> str:
