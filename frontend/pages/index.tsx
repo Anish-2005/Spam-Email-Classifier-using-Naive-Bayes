@@ -16,7 +16,9 @@ export default function Home() {
     setLoading(true)
     setResult(null)
     try {
-      const res = await fetch(`https://spam-email-classifier-using-naive-bayes-1.onrender.com/predict`, {
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '')
+      const endpoint = apiBase ? `${apiBase}/predict` : '/predict'
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),

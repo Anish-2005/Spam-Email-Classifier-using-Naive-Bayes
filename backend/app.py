@@ -53,8 +53,13 @@ app.add_middleware(
 # Mount under /static so FastAPI docs (/docs) remain available.
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 if os.path.isdir(STATIC_DIR):
+    # Mount the top-level static dir at /static
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-    logger.info(f"Serving frontend static files from: {STATIC_DIR} at /static")
+    # Also mount Next.js asset directory at /_next so exported pages reference assets correctly
+    next_dir = os.path.join(STATIC_DIR, "_next")
+    if os.path.isdir(next_dir):
+        app.mount("/_next", StaticFiles(directory=next_dir), name="next_static")
+    logger.info(f"Serving frontend static files from: {STATIC_DIR} at /static and /_next")
 
 
 @app.get("/")
