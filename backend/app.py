@@ -114,9 +114,14 @@ def predict(item: TextIn):
     text = [item.text]
     try:
         proba = m.predict_proba(text)[:, 1][0]
-    except Exception:
-        pred = m.predict(text)[0]
-        proba = 1.0 if str(pred).lower() == 'spam' else 0.0
+    except Exception as e:
+        logger.exception("predict_proba failed: %s", e)
+        try:
+            pred = m.predict(text)[0]
+            proba = 1.0 if str(pred).lower() == 'spam' else 0.0
+        except Exception as e2:
+            logger.exception("predict failed: %s", e2)
+            raise HTTPException(status_code=500, detail="model_prediction_failed")
     label = 'spam' if proba >= 0.5 else 'ham'
     return {"label": label, "probability": float(proba)}
 
@@ -128,8 +133,13 @@ def predict_batch(item: BatchIn):
     texts = item.texts
     try:
         probas = m.predict_proba(texts)[:, 1].tolist()
-    except Exception:
-        preds = m.predict(texts)
-        probas = [1.0 if str(p).lower() == 'spam' else 0.0 for p in preds]
+    except Exception as e:
+        logger.exception("predict_proba batch failed: %s", e)
+        try:
+            preds = m.predict(texts)
+            probas = [1.0 if str(p).lower() == 'spam' else 0.0 for p in preds]
+        except Exception as e2:
+            logger.exception("predict batch failed: %s", e2)
+            raise HTTPException(status_code=500, detail="model_prediction_failed")
     labels = ['spam' if p >= 0.5 else 'ham' for p in probas]
     return {"predictions": [ {"text": t, "label": l, "probability": float(p)} for t, l, p in zip(texts, labels, probas) ]}
