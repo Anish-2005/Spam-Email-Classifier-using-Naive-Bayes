@@ -3,19 +3,19 @@ version: 0.8
 services:
   - type: web
     name: Spam-Email-Classifier-backend
-    env: docker
+    env: python
     branch: main
     plan: free
-    dockerfilePath: backend/Dockerfile
-    buildCommand: ""
-    startCommand: ""
+    pythonVersion: 3.10
+    buildCommand: |
+      pip install --upgrade pip setuptools wheel
+      pip install -r backend/requirements.txt
+    startCommand: gunicorn -k uvicorn.workers.UvicornWorker app:app --bind 0.0.0.0:$PORT --workers 4 --timeout 120
     envVars:
       - key: MODEL_PATH
-        value: /app/models/model_with_sms_norm.joblib
+        value: ./models/model_with_sms_norm.joblib
       - key: ALLOWED_ORIGINS
         value: '*'
-      - key: PORT
-        value: '8000'
   - type: web
     name: Spam-Email-Classifier-frontend
     env: docker
