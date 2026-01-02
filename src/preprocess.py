@@ -4,6 +4,7 @@ from typing import List
 import nltk
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
+from nltk.corpus import stopwords
 
 _nltk_ready = False
 
@@ -43,3 +44,17 @@ def lemmatize_text(text: str) -> str:
     tokens = simple_tokenize(simple_clean(text))
     lemmas = [lemmatizer.lemmatize(t) for t in tokens]
     return " ".join(lemmas)
+
+
+def tokenize_and_lemmatize(text: str) -> List[str]:
+    """Return a list of lemmatized tokens with English stopwords removed.
+
+    This is suitable to pass as `tokenizer` to sklearn vectorizers so that
+    stopword removal happens consistently with the tokenization/lemmatization.
+    """
+    ensure_nltk()
+    lemmatizer = WordNetLemmatizer()
+    sw = set(stopwords.words("english"))
+    tokens = simple_tokenize(simple_clean(text))
+    lemmas = [lemmatizer.lemmatize(t) for t in tokens]
+    return [l for l in lemmas if l not in sw]

@@ -19,6 +19,43 @@ from sklearn.calibration import CalibratedClassifierCV
 from joblib import dump
 
 from src.preprocess import lemmatize_text
+from sklearn.base import TransformerMixin, BaseEstimator
+import warnings
+
+
+class SelectKBestSafe(BaseEstimator, TransformerMixin):
+    """Wrapper that adjusts k if it's larger than the available feature count.
+
+    This avoids sklearn's warning when `k` is greater than n_features.
+    """
+    def __init__(self, score_func=chi2, k=500):
+        self.score_func = score_func
+        self.k = k
+        self.selector_ = None
+
+    def fit(self, X, y=None):
+        # X may be sparse; use shape[1] for number of features
+        n_features = X.shape[1]
+        k = self.k
+        if k is None:
+            k_arg = 'all'
+        elif isinstance(k, int):
+            # clamp k to available features to avoid sklearn warning
+            k_arg = min(k, n_features)
+        else:
+            k_arg = k
+        # instantiate SelectKBest with clamped k inside a warnings context
+        from sklearn.feature_selection import SelectKBest as _SKB
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            self.selector_ = _SKB(self.score_func, k=k_arg).fit(X, y)
+        return self
+
+    def transform(self, X):
+        return self.selector_.transform(X)
+
+    def get_support(self, indices=False):
+        return self.selector_.get_support(indices=indices)
 
 
 def load_and_combine(paths):
@@ -35,12 +72,18 @@ def load_and_combine(paths):
 
 
 def build_pipeline(use_char=False, k_best=None, clf_name="logreg"):
-    vect = TfidfVectorizer(preprocessor=lemmatize_text, stop_words="english",
+    # Use a tokenizer that lemmatizes and removes stopwords to keep
+    # stopword handling consistent with preprocessing and avoid warnings.
+    from src.preprocess import tokenize_and_lemmatize
+    # When providing a custom tokenizer, explicitly set token_pattern=None
+    # to avoid sklearn informing that token_pattern will be ignored.
+    vect = TfidfVectorizer(tokenizer=tokenize_and_lemmatize, token_pattern=None, preprocessor=None,
+                           lowercase=False,
                            ngram_range=(1, 2) if not use_char else (1, 3),
                            max_df=0.95, min_df=2, max_features=60000)
     steps = [("tfidf", vect)]
     if k_best:
-        steps.append(("select", SelectKBest(chi2, k=k_best)))
+        steps.append(("select", SelectKBestSafe(chi2, k=k_best)))
     if clf_name == "logreg":
         clf = LogisticRegression(max_iter=2000, solver="saga", class_weight="balanced")
     else:
@@ -55,6 +98,7 @@ def main():
     parser.add_argument("--data", nargs="*", help="Alias for --inputs (single path or list)")
     parser.add_argument("--output", default="models/model_advanced_final.joblib")
     parser.add_argument("--cv", type=int, default=3)
+    parser.add_argument("--large", action="store_true", help="Run a larger grid search (longer)")
     args = parser.parse_args()
 
     # allow --data as alias to --inputs
@@ -65,19 +109,30 @@ def main():
     texts, labels = load_and_combine(inputs)
     X_train, X_test, y_train, y_test = train_test_split(texts, labels, test_size=0.2, random_state=42, stratify=labels)
 
-    # moderate grid: try with/without char n-grams, a couple of k values, and two classifiers
-    param_grid = [
-        {
-            "use_char": [False],
-            "k_best": [None, 5000, 10000],
-            "clf_name": ["logreg"],
-        },
-        {
-            "use_char": [True],
-            "k_best": [None, 5000],
-            "clf_name": ["logreg", "cnb"],
-        },
-    ]
+    # moderate vs larger grid selection
+    if args.large:
+        # larger but still reasonable grid
+        param_grid = [
+            {
+                "use_char": [False, True],
+                "k_best": [None, 200, 500, 1000],
+                "clf_name": ["logreg", "cnb"],
+            },
+        ]
+    else:
+        # smaller, safer k values to avoid SelectKBest k>n_features warnings
+        param_grid = [
+            {
+                "use_char": [False],
+                "k_best": [None, 200, 500],
+                "clf_name": ["logreg"],
+            },
+            {
+                "use_char": [True],
+                "k_best": [None, 200, 500],
+                "clf_name": ["logreg", "cnb"],
+            },
+        ]
 
     candidates = []
     for spec in param_grid:
