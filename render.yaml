@@ -1,0 +1,32 @@
+# Render service configuration for Docker deployment
+version: 0.8
+services:
+  - type: web
+    name: Spam-Email-Classifier-backend
+    env: docker
+    branch: main
+    plan: free
+    dockerfilePath: backend/Dockerfile
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: MODEL_PATH
+        value: /app/models/model_with_sms_norm.joblib
+      - key: ALLOWED_ORIGINS
+        value: '*'
+      - key: PORT
+        value: '8000'
+  - type: web
+    name: Spam-Email-Classifier-frontend
+    env: docker
+    branch: main
+    plan: free
+    dockerfilePath: frontend/Dockerfile
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: BACKEND_URL
+        # Render will route to backend service; replace with your backend URL if known
+        value: 'https://Spam-Email-Classifier-backend.onrender.com'
+      - key: PORT
+        value: '3000'
