@@ -24,7 +24,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta property="og:description" content="Classify emails and SMS with ML-grade precision. Real-time, private, browser-local inference." />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       </Head>
 
       {/* Skip to content — Accessibility */}
