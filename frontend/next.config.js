@@ -1,12 +1,43 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: true,
+  poweredByHeader: false, // Remove X-Powered-By header for security
+
   async rewrites() {
     const dest = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
     return [
       {
         source: '/api/:path*',
-        destination: `${dest}/:path*`, // Proxy to backend
+        destination: `${dest}/:path*`,
+      },
+    ]
+  },
+
+  // Security and performance headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+      {
+        // Cache static assets aggressively
+        source: '/favicon.svg',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/manifest.json',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400' },
+        ],
       },
     ]
   },

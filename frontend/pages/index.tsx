@@ -98,6 +98,49 @@ export default function Home() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Load persisted history and analyze count from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('spamguard-history')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        setHistory(parsed.map((item: any) => ({ ...item, timestamp: new Date(item.timestamp) })))
+      }
+      const count = localStorage.getItem('spamguard-analyze-count')
+      if (count) setAnalyzeCount(parseInt(count, 10) || 0)
+    } catch { }
+  }, [])
+
+  // Persist history to localStorage on change
+  useEffect(() => {
+    try {
+      localStorage.setItem('spamguard-history', JSON.stringify(history.slice(0, 50)))
+    } catch { }
+  }, [history])
+
+  // Persist analyze count
+  useEffect(() => {
+    try { localStorage.setItem('spamguard-analyze-count', String(analyzeCount)) } catch { }
+  }, [analyzeCount])
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Ctrl+K or Cmd+K → focus textarea
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        textareaRef.current?.focus()
+        setActiveTab('analyze')
+      }
+      // Escape → blur focused element
+      if (e.key === 'Escape' && document.activeElement === textareaRef.current) {
+        textareaRef.current?.blur()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
   // Auto-resize textarea
   useEffect(() => {
     const ta = textareaRef.current
@@ -541,7 +584,7 @@ export default function Home() {
                           {history.length > 0 && (
                             <>
                               <button
-                                onClick={() => { setHistory([]); setToast({ message: 'History cleared', type: 'info' }) }}
+                                onClick={() => { setHistory([]); try { localStorage.removeItem('spamguard-history') } catch { }; setToast({ message: 'History cleared', type: 'info' }) }}
                                 className="btn-secondary px-3 py-1.5 text-xs rounded-lg flex items-center gap-1.5"
                               >
                                 <Trash2 size={12} />
