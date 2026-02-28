@@ -232,7 +232,7 @@
   }
 
   .animate-slide-in {
-    animation: slideIn 0.4s var(--ease-bounce) forwards;
+    animation: slideInUp 0.4s var(--ease-bounce) forwards;
   }
 
   .animate-scale-in {
@@ -489,6 +489,18 @@
   }
 }
 
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Animated spinner */
 .spinner {
   width: 20px;
@@ -497,6 +509,40 @@
   border-top-color: white;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+
+/* Loading dots animation */
+.loading-dots {
+  display: inline-block;
+  width: 1.2em;
+  text-align: left;
+}
+
+.loading-dots::after {
+  content: '';
+  animation: loadingDots 1.5s steps(4, end) infinite;
+}
+
+@keyframes loadingDots {
+  0% {
+    content: '';
+  }
+
+  25% {
+    content: '.';
+  }
+
+  50% {
+    content: '..';
+  }
+
+  75% {
+    content: '...';
+  }
+
+  100% {
+    content: '';
+  }
 }
 
 /* ─── CUSTOM SCROLLBAR ─── */

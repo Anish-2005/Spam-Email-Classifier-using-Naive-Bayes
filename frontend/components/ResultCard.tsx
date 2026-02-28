@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { ShieldCheck, ShieldAlert, Info, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react'
+import React, { useEffect, useState, memo } from 'react'
+import { ShieldCheck, ShieldAlert, Info, TrendingUp, AlertTriangle, CheckCircle, Copy, Check } from 'lucide-react'
 
 type Props = {
   label: string
@@ -7,18 +7,26 @@ type Props = {
   text?: string
 }
 
-export function ResultCard({ label, probability, text }: Props) {
+export const ResultCard = memo(function ResultCard({ label, probability, text }: Props) {
   const isSpam = label.toLowerCase() === 'spam'
   const confidence = Math.min(Math.max(probability, 0), 1) * 100
   const riskLevel = confidence > 90 ? 'Critical' : confidence > 70 ? 'High' : confidence > 50 ? 'Moderate' : 'Low'
-  const barRef = useRef<HTMLDivElement>(null)
   const [animatedWidth, setAnimatedWidth] = useState(0)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    // Animate the progress bar on mount
     const timeout = setTimeout(() => setAnimatedWidth(confidence), 100)
     return () => clearTimeout(timeout)
   }, [confidence])
+
+  const copyResult = async () => {
+    const summary = `SpamGuard Analysis\n──────────────\nResult: ${isSpam ? 'SPAM' : 'LEGITIMATE'}\nConfidence: ${confidence.toFixed(1)}%\nRisk Level: ${riskLevel}\n${text ? `\nMessage: ${text.substring(0, 200)}` : ''}`
+    try {
+      await navigator.clipboard.writeText(summary)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { }
+  }
 
   return (
     <div
@@ -40,7 +48,6 @@ export function ResultCard({ label, probability, text }: Props) {
         {/* Header Row */}
         <div className="flex items-start justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
-            {/* Icon with glow effect */}
             <div className={`
               relative p-3 rounded-2xl
               ${isSpam
@@ -49,14 +56,11 @@ export function ResultCard({ label, probability, text }: Props) {
               }
             `}>
               {isSpam ? <ShieldAlert size={24} /> : <ShieldCheck size={24} />}
-              {/* Pulse ring */}
-              <div className={`absolute inset-0 rounded-2xl animate-ping opacity-20 ${isSpam ? 'bg-red-400' : 'bg-emerald-400'
-                }`} style={{ animationDuration: '2s' }} />
+              <div className={`absolute inset-0 rounded-2xl animate-ping opacity-20 ${isSpam ? 'bg-red-400' : 'bg-emerald-400'}`} style={{ animationDuration: '2s' }} />
             </div>
 
             <div>
-              <h3 className={`text-xl font-bold tracking-tight ${isSpam ? 'text-red-700 dark:text-red-300' : 'text-emerald-700 dark:text-emerald-300'
-                }`}>
+              <h3 className={`text-xl font-bold tracking-tight ${isSpam ? 'text-red-700 dark:text-red-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
                 {isSpam ? 'Spam Detected' : 'Legitimate Message'}
               </h3>
               <div className="flex items-center gap-2 mt-1">
@@ -71,10 +75,9 @@ export function ResultCard({ label, probability, text }: Props) {
             </div>
           </div>
 
-          {/* Confidence score — large display */}
+          {/* Confidence + copy button */}
           <div className="text-right flex-shrink-0">
-            <div className={`text-3xl font-extrabold tabular-nums tracking-tight ${isSpam ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
-              }`}>
+            <div className={`text-3xl font-extrabold tabular-nums tracking-tight ${isSpam ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {confidence.toFixed(1)}
               <span className="text-lg font-bold opacity-60">%</span>
             </div>
@@ -85,44 +88,46 @@ export function ResultCard({ label, probability, text }: Props) {
           </div>
         </div>
 
-        {/* Confidence Bar — Animated */}
+        {/* Confidence Bar */}
         <div className="mb-6">
           <div className="flex items-center justify-between text-xs font-medium mb-2">
             <span className="text-gray-600 dark:text-gray-400 uppercase tracking-wider">Detection Score</span>
-            <span className={`font-bold ${isSpam ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
-              }`}>
+            <span className={`font-bold tabular-nums ${isSpam ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {confidence.toFixed(1)}%
             </span>
           </div>
           <div className="relative h-2.5 w-full rounded-full bg-gray-200/70 dark:bg-gray-700/50 overflow-hidden">
             <div
-              ref={barRef}
               className={`h-full rounded-full transition-all duration-1000 ease-out relative ${isSpam
-                  ? 'bg-gradient-to-r from-red-500 via-rose-500 to-orange-500'
-                  : 'bg-gradient-to-r from-emerald-500 via-green-500 to-cyan-500'
+                ? 'bg-gradient-to-r from-red-500 via-rose-500 to-orange-500'
+                : 'bg-gradient-to-r from-emerald-500 via-green-500 to-cyan-500'
                 }`}
               style={{ width: `${animatedWidth}%` }}
             >
-              {/* Shimmer on progress bar */}
               <div className="absolute inset-0 shimmer" />
             </div>
           </div>
-          {/* Scale markers */}
           <div className="flex justify-between text-[10px] text-gray-400 dark:text-gray-500 mt-1.5 font-medium tabular-nums">
-            <span>0%</span>
-            <span>25%</span>
-            <span>50%</span>
-            <span>75%</span>
-            <span>100%</span>
+            <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
           </div>
         </div>
 
         {/* Message Preview */}
         {text && (
           <div className="mb-5">
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wider">
-              <Info size={12} />
-              Analyzed Content
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                <Info size={12} />
+                Analyzed Content
+              </div>
+              <button
+                onClick={copyResult}
+                className="flex items-center gap-1 text-[10px] font-medium text-gray-400 hover:text-brand-500 transition-colors"
+                title="Copy result summary"
+              >
+                {copied ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
             </div>
             <div className="bg-white/60 dark:bg-gray-800/40 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/30 max-h-28 overflow-y-auto">
               <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-mono">
@@ -134,15 +139,13 @@ export function ResultCard({ label, probability, text }: Props) {
 
         {/* Recommendation */}
         <div className={`rounded-xl p-4 border ${isSpam
-            ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200/50 dark:border-red-800/30'
-            : 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/30'
+          ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200/50 dark:border-red-800/30'
+          : 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/30'
           }`}>
-          <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isSpam ? 'text-red-700 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400'
-            }`}>
+          <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isSpam ? 'text-red-700 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
             {isSpam ? '⚠ Recommended Action' : '✓ Status'}
           </p>
-          <p className={`text-sm font-medium ${isSpam ? 'text-red-600/90 dark:text-red-300/90' : 'text-emerald-600/90 dark:text-emerald-300/90'
-            }`}>
+          <p className={`text-sm font-medium ${isSpam ? 'text-red-600/90 dark:text-red-300/90' : 'text-emerald-600/90 dark:text-emerald-300/90'}`}>
             {isSpam
               ? 'This message exhibits high spam characteristics. Consider blocking this sender and reporting it.'
               : 'This message appears legitimate and safe. No protective action is required.'
@@ -152,4 +155,4 @@ export function ResultCard({ label, probability, text }: Props) {
       </div>
     </div>
   )
-}
+})

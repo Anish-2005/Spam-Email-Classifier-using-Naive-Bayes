@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { LucideIcon } from 'lucide-react'
 
 type Props = {
@@ -35,16 +35,16 @@ const colorMap = {
     },
 }
 
-export function FeatureCard({ icon: Icon, title, description, color }: Props) {
+export const FeatureCard = memo(function FeatureCard({ icon: Icon, title, description, color }: Props) {
     const c = colorMap[color]
 
     return (
-        <div className={`group glass-card rounded-2xl p-5 border ${c.border} ${c.glow} transition-all duration-300 hover:-translate-y-0.5`}>
-            <div className={`inline-flex p-2.5 rounded-xl ${c.bg} mb-3`}>
+        <div className={`group glass-card rounded-2xl p-5 border ${c.border} ${c.glow} transition-all duration-300 hover:-translate-y-0.5 cursor-default`}>
+            <div className={`inline-flex p-2.5 rounded-xl ${c.bg} mb-3 transition-transform duration-300 group-hover:scale-110`}>
                 <Icon size={20} className={c.icon} />
             </div>
             <h4 className="font-bold text-sm text-gray-900 dark:text-white mb-1.5">{title}</h4>
             <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{description}</p>
         </div>
     )
-}
+})
